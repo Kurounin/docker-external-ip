@@ -43,7 +43,7 @@ done
 activeIps=""
 
 # Store used ip address
-{{ range $index, $container := $containers }}
+{{ range $index, $container := . }}
     {{ range $index, $network := $container.Networks }}
         activeIps="${activeIps},{{ $network.IP }},"
     {{ end }}
