@@ -7,13 +7,16 @@ $ docker run --detach \
  tozd/external-ip
 ```
 
-After that, if any other Docker container has an environment variable `EXTERNAL_IP` set, with an IP address to use for
+After that, if any other Docker container has an environment variable `SERVER_IP` set, with an IP address to use for
 containers external IP, iptables will be configured to route container's traffic from that external IP.
 The external IP must be assigned on the host.
 
 A chain named `EXTERNAL_IP` is created in the `nat` table into which all the rules are added.
 And one more empty chain is created after this one for any additional custom rules you might want
 to add, named `AFTER_EXTERNAL_IP`.
+
+Additionally it replaces the default DNAT Docker rules with rules which do not restrict the source interface,
+thus allowing for communication between the containers in the same network using the external ip.
 
 ## docker-compose example
 
