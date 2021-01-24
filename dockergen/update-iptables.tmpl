@@ -18,24 +18,26 @@ linesToRemove=""
 
 {{ range $index, $container := . }}
     {{ range $index, $network := $container.Networks }}
-        {{ if and $network.IP $container.Env.SERVER_IP }}
+        {{ if $network.IP }}
             activeContainerIps+=",{{ $network.IP }},"
             
-            # Route container's traffic from that external IP 
-            iptables -t nat -I EXTERNAL_IP -s {{ $network.IP }} -j SNAT --to-source {{ $container.Env.SERVER_IP }}
-            
-            # Check for NAT rules that do not allow traffic from same network
-            ipLines=$(echo "$dnatRules" | awk '$7!="*" && $10=="{{ $container.Env.SERVER_IP }}" && index($13, ":{{ $network.IP }}:")==3 {print $1}')
-            
-            if [ -n "$ipLines" ]; then
-                linesToRemove+=$'\n'
-                linesToRemove+=$ipLines
+            {{ if $container.Env.SERVER_IP }}
+                # Route container's traffic from that external IP 
+                iptables -t nat -I EXTERNAL_IP -s {{ $network.IP }} -j SNAT --to-source {{ $container.Env.SERVER_IP }}
                 
-                # Add rules without traffic restrictions
-                {{ range $index, $address := $container.Addresses }}
-                    iptables -t nat -A DOCKER -p {{ $address.Proto }} -m {{ $address.Proto }} -d {{ $container.Env.SERVER_IP }}/32 --dport {{ $address.HostPort }} -j DNAT --to-destination {{ $network.IP }}:{{ $address.Port }}
-                {{ end }}
-            fi
+                # Check for NAT rules that do not allow traffic from same network
+                ipLines=$(echo "$dnatRules" | awk '$7!="*" && $10=="{{ $container.Env.SERVER_IP }}" && index($13, ":{{ $network.IP }}:")==3 {print $1}')
+                
+                if [ -n "$ipLines" ]; then
+                    linesToRemove+=$'\n'
+                    linesToRemove+=$ipLines
+                    
+                    # Add rules without traffic restrictions
+                    {{ range $index, $address := $container.Addresses }}
+                        iptables -t nat -A DOCKER -p {{ $address.Proto }} -m {{ $address.Proto }} -d {{ $container.Env.SERVER_IP }}/32 --dport {{ $address.HostPort }} -j DNAT --to-destination {{ $network.IP }}:{{ $address.Port }}
+                    {{ end }}
+                fi
+            {{ end }}
         {{ end }}
     {{ end }}
 {{ end }}
