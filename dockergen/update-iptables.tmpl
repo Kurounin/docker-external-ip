@@ -42,15 +42,16 @@ linesToRemove=""
     {{ end }}
 {{ end }}
 
-# Remove entries that restrict traffic
-for line in $(echo "$linesToRemove" | tac); do
-    iptables -t nat -D DOCKER $line
-done
-
 # Check DNAT rules for stopped container
-lines=$(iptables -w --line-numbers --numeric -v -t nat --list DOCKER | grep DNAT | awk -v activeContainerIps=$activeContainerIps 'split($13, dnat, ":")==3 && index(activeContainerIps, "," dnat[2] ",")==0 {print $1}' | tac)
+lines=$(echo "$dnatRules" | awk -v activeContainerIps=$activeContainerIps 'split($13, dnat, ":")==3 && index(activeContainerIps, "," dnat[2] ",")==0 {print $1}')
 
 # Remove entries for stopped containers
 for line in $lines; do
+	linesToRemove+=$'\n'
+	linesToRemove+=$line
+done
+
+# Remove entries that restrict traffic
+for line in $(echo "$linesToRemove" | sort -u | tac); do
     iptables -t nat -D DOCKER $line
 done
