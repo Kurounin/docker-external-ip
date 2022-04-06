@@ -52,6 +52,6 @@ for line in $lines; do
 done
 
 # Remove entries that restrict traffic
-for line in $(echo "$linesToRemove" | sort -u | tac); do
+for line in $(echo "$linesToRemove" | sort -unr); do
     iptables -t nat -D DOCKER $line
 done
