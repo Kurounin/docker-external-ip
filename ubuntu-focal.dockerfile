@@ -10,5 +10,6 @@ RUN apt-get update -q -q && \
  wget -P /dockergen https://github.com/jwilder/docker-gen/releases/download/0.7.4/docker-gen-linux-amd64-0.7.4.tar.gz && \
  tar xf /dockergen/docker-gen-linux-amd64-0.7.4.tar.gz -C /dockergen
 
+RUN rm -rf /etc/service
 COPY ./etc /etc
 COPY ./dockergen /dockergen
